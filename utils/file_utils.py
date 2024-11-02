@@ -1,7 +1,7 @@
 import os
 import re
 from zipfile import ZipFile
-from rarfile import RarFile
+from rarfile import RarFile, BadRarFile
 from datetime import datetime
 
 DOWNLOAD_DIR = "downloads"
@@ -33,7 +33,7 @@ def extract_zip_file(filepath: str):
 
 
 def extract_rar_file(filepath : str):
-    with RarFile(filepath) as rar_ref:
+    with RarFile(filepath, part_only=True) as rar_ref:
         rar_ref.extractall(EXTRACTION_DIR)
         print(f"Extracted: {filepath} to {EXTRACTION_DIR}")
 
@@ -43,12 +43,15 @@ def extract_file(filepath: str):
         extract_zip_file(filepath)
 
     elif filepath.endswith(".rar"):
-        extract_rar_file(filepath)
+        try: 
+            extract_rar_file(filepath)
+            os.remove(filepath)
+        except BadRarFile as e: print(e, ". Need to extract manually")
 
 
 def check_and_extract_files():
     os.chdir(DEFAULT_DOWNLOAD_DIR)      # Change current working directory to default download directory
-    
+
     today = datetime.now().date()
     print(f"Checking files in directory: {DEFAULT_DOWNLOAD_DIR}")
 
@@ -65,5 +68,6 @@ def check_and_extract_files():
         filepath = os.path.join(DEFAULT_DOWNLOAD_DIR, filename)
         print(f"Extracting: {filename}")
         extract_file(filepath)
-        os.remove(filepath)  # Remove archive after extraction
         print(f"Removed archive: {filepath}")
+
+check_and_extract_files()

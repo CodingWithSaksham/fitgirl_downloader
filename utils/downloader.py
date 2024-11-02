@@ -38,7 +38,7 @@ def process_url(file_path):
             if download_link:
                 try:
                     wifi_speed = 1.25e-7 * st.download()       # Returns the download speed of user in megabytes per second
-                    time_for_download = 500/wifi_speed          # Taking an average of 500MB per archive and dividing it by wifi speed to get time for download
+                    time_for_download = (500/wifi_speed) - 8          # Taking an average of 500MB per archive and dividing it by wifi speed to get time for download
                 except ZeroDivisionError:
                     wait_for_wifi()
                 
