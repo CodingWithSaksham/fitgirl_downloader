@@ -9,5 +9,8 @@ This is a repo which is deadicated to make your life easy by giving the code a .
 - Run the executable file and input the name of the file. Example: If the downloaded file is named `downloads.txt` you can enter either `downloads.txt` or just `download` to make the code run.
 - Sit back, relax and make sure you dont get caught pirating these games as it is highly illegal.
 
-
-**NOTE:** `By downloading the executable file you agree that if you are caught pirating these games the developer wont be held responsible for any damages or any illegal cases. `
+## DISCLAIMER
+- Please disable your firewall for the code to work as some of the downloads may raise the firewall and stop them from downloading. Proceed with caution. 
+- If for any reason your network is shutdown you will have to manually restart the failed file.
+## **NOTE:** 
+`By downloading the executable file you agree that if you are caught pirating these games the developer wont be held responsible for any damages or any illegal cases. `
