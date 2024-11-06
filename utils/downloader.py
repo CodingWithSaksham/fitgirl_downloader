@@ -2,7 +2,6 @@ from os.path import exists
 from requests import Session
 from speedtest import Speedtest, ConfigRetrievalError
 from time import sleep
-from .file_utils import check_and_extract_files
 from .web_utils import get_download_link, open_download_link
 
 st = Speedtest()
@@ -45,7 +44,3 @@ def process_url(file_path):
                 print(f"Opening download link: {download_link}")
                 open_download_link(download_link)
                 sleep(time_for_download)
-
-        print("All files are being downloaded. Press Enter when ready to unzip them.")
-        input("Press Enter when all the files are downloaded")
-        check_and_extract_files()
