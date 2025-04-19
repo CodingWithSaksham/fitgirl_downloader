@@ -1,6 +1,8 @@
 from platform import system
 from os import getcwd, mkdir, path
-from subprocess import DEVNULL, run
+from subprocess import run
+
+from .file_utils import ensure_file_accessible
 
 download_folder = path.join(getcwd(), "Downloads")
 if not path.exists(download_folder):
@@ -15,6 +17,7 @@ def get_aria2c() -> str:
     elif system() == "Linux":
         aria2c_path = path.join("resource", "linux", "aria2c")
 
+    aria2c_path = ensure_file_accessible(aria2c_path)
     return aria2c_path
 
 
