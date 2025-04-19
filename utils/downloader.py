@@ -1,46 +1,49 @@
-from os.path import exists
-from requests import Session
-from speedtest import Speedtest, ConfigRetrievalError
-from time import sleep
-from .web_utils import get_download_link, open_download_link
+from .web_utils import get_download_link, get_filename_from_url, open_download_link
+from .file_utils import return_missing_files
+from .unrar import unrar_file
 
-st = Speedtest()
+from logging import getLogger
+from aiohttp import ClientSession
+from asyncio import create_task, gather
 
+st = None
+files_and_urls = {}
+re_downloading = False
 
-def wait_for_wifi():
-    """
-    Pauses code execution until an internet connection is detected using Speedtest.
-    """
-    while True:
-        try:
-            # Attempt to retrieve a speed test server list to check connectivity
-            st.get_best_server()
-            print("Wi-Fi connection restored.")
-            break  # Connection successful, break the loop
-        except ConfigRetrievalError:
-            print("Waiting for Wi-Fi to come back...")
-            sleep(5)  # Wait for a few seconds before retrying
+logger = getLogger(__name__)
 
 
-def process_url(file_path):
-    if not exists(file_path):
-        print("File not found")
-        return
+async def process_urls(urls: list):
+    async with ClientSession() as session:
+        download_link_tasks = [
+            create_task(get_download_link(session, url)) for url in urls
+        ]
 
-    with open(file_path, 'r') as file:
-        urls = [line.lstrip("- ").strip() for line in file if line.lstrip("- ").strip()]
+        # Wait for all download links to be fetched
+        download_links = await gather(*download_link_tasks)
 
-    with Session() as session:
-        for url in urls:
-            print(f"Processing URL: {url}")
-            download_link = get_download_link(session, url)
-            if download_link:
-                try:
-                    wifi_speed = 1.25e-7 * st.download()       # Returns the download speed of user in megabytes per second
-                    time_for_download = (500/wifi_speed) - 8          # Taking an average of 500MB per archive and dividing it by wifi speed to get time for download
-                except ZeroDivisionError:
-                    wait_for_wifi()
-                
-                print(f"Opening download link: {download_link}")
-                open_download_link(download_link)
-                sleep(time_for_download)
+        filename_tasks = [
+            create_task(get_filename_from_url(link, session)) for link in download_links
+        ]
+
+        filenames = await gather(*filename_tasks)
+
+        for url, link, filename in zip(urls, download_links, filenames):
+            if not link:
+                logger.warning(f"Skipping URL due to missing download link: {url}")
+                continue
+
+            files_and_urls[filename] = link
+
+        await open_download_link(download_links)
+
+    # Handle missing files
+    missing_files = return_missing_files(files_and_urls)
+
+    if missing_files:
+        print("Starting to download missing files again")
+        await process_urls(missing_files)
+    else:
+        print("All files downloaded! Starting extraction.")
+        rar_file = tuple(files_and_urls.keys())[0].lstrip("'")
+        await unrar_file(rar_file)
