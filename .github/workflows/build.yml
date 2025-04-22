@@ -44,7 +44,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller
+          pip install pyinstaller Pillow
           pip install -r requirements.txt
       - name: Build with build.py
         run: |
