@@ -17,9 +17,13 @@ def format_filename():
     """Formats user input to either append '.txt' or add './' in the beginning"""
 
     print_txt_files()
-    user_input = input("Enter file name from the above text files: ")
-    if user_input is None:
-        logger.warn("File name cannot be empty")
+    user_input = ""
+    try:
+        user_input = input("Enter file name from the above text files: ")
+    except EOFError:
+        # Pretend that script is in GitHub action
+        logger.info("Binary in GitHub action")
+        pass
 
     if user_input == "":
         user_input = "download"
