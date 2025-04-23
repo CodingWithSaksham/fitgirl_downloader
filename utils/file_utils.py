@@ -88,6 +88,11 @@ def ensure_file_accessible(file_path: str) -> str:
     bundled with PyInstaller and returns file path according to PyInstaller Bundle
     """
 
+    # Get the absolute path to resources (handles PyInstaller bundling)
+    if hasattr(sys, "_MEIPASS"):
+        # Running as a bundled executable
+        return os.path.join(sys._MEIPASS, file_path)
+
     # Ensure the binary is executable
     if not os.path.exists(file_path):
         raise FileNotFoundError("Fallback driver/binary not found")
@@ -95,10 +100,4 @@ def ensure_file_accessible(file_path: str) -> str:
     if not os.access(file_path, os.X_OK):
         os.chmod(file_path, 0o755)  # Ensure it's executable
 
-    # Get the absolute path to resources (handles PyInstaller bundling)
-    if hasattr(sys, "_MEIPASS"):
-        # Running as a bundled executable
-        return os.path.join(sys._MEIPASS, file_path)
-
     return file_path
-

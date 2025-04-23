@@ -1,4 +1,4 @@
-name: Build Executables
+name: Build, Test & Release Executables
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: write
 
@@ -27,13 +28,15 @@ jobs:
           pip install pyinstaller Pillow
           pip install -r requirements.txt
       - name: Build with build.py
+        run: python build.py
+      - name: Compress Windows binary
         run: |
-          python build.py
-      - name: Upload Windows artifact
+          powershell Compress-Archive -Path dist/fitgirl_downloader.exe -DestinationPath windows-x64-binary.zip
+      - name: Upload zipped Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: fitgirl_downloader-windows
-          path: dist/fitgirl_downloader.exe
+          path: windows-x64-binary.zip
           retention-days: 7
 
   build-linux:
@@ -51,25 +54,59 @@ jobs:
           pip install pyinstaller Pillow
           pip install -r requirements.txt
       - name: Build with build.py
-        run: |
-          python build.py
-      - name: Upload Linux artifact
+        run: python build.py
+      - name: Compress Linux binary
+        run: zip linux-x64-binary.zip dist/fitgirl_downloader
+      - name: Upload zipped Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: fitgirl_downloader-linux
-          path: dist/fitgirl_downloader
+          path: linux-x64-binary.zip
           retention-days: 7
 
+  test-windows:
+    runs-on: windows-latest
+    needs: build-windows
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fitgirl_downloader-windows
+          path: test_artifacts
+      - name: Extract and run Windows binary
+        run: |
+          powershell Expand-Archive -Path test_artifacts/windows-x64-binary.zip -DestinationPath test_artifacts
+          test_artifacts/fitgirl_downloader.exe
+
+  test-linux:
+    runs-on: ubuntu-latest
+    needs: build-linux
+    steps:
+      - uses: actions/checkout@v3
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: fitgirl_downloader-linux
+          path: test_artifacts
+      - name: Extract and run Linux binary
+        run: |
+          unzip test_artifacts/linux-x64-binary.zip -d test_artifacts
+          chmod +x test_artifacts/fitgirl_downloader
+          test_artifacts/fitgirl_downloader
+
   release:
-    needs: [build-windows, build-linux]
+    needs: [build-windows, build-linux, test-windows, test-linux]
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download Windows artifact for release
+        uses: actions/download-artifact@v4
         with:
           name: fitgirl_downloader-windows
           path: artifacts/windows
-      - uses: actions/download-artifact@v4
+      - name: Download Linux artifact for release
+        uses: actions/download-artifact@v4
         with:
           name: fitgirl_downloader-linux
           path: artifacts/linux
@@ -78,7 +115,7 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           files: |
-            artifacts/windows/fitgirl_downloader.exe
-            artifacts/linux/fitgirl_downloader
+            artifacts/windows/windows-x64-binary.zip
+            artifacts/linux/linux-x64-binary.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

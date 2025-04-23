@@ -1,4 +1,3 @@
-# pyinstaller_build.py
 import os
 import sys
 import platform
@@ -19,18 +18,28 @@ pyinstaller_args = [
     main_script,
     "--name=fitgirl_downloader",
     "--onefile",  # Create a single executable
-    "--icon=image.ico",  # Use your icon
-    f"--add-data=resource{separator}resource",  # Include resource directory
-    f"--add-data=LICENSE{separator}.",  # Include LICENSE file
-    f"--add-data=README.md{separator}.",  # Include README file
-    "--hidden-import=loggers",  # Add potential hidden imports
+    "--icon=image.ico",
+    # Add Linux binaries individually
+    f"--add-data=resource/linux/aria2c{separator}resource/linux",
+    f"--add-data=resource/linux/geckodriver{separator}resource/linux",
+    f"--add-data=resource/linux/unrar{separator}resource/linux",
+    # Add Windows binaries individually
+    f"--add-data=resource/windows/aria2c.exe{separator}resource/windows",
+    f"--add-data=resource/windows/chromedriver.exe{separator}resource/windows",
+    f"--add-data=resource/windows/unrarw64.exe{separator}resource/windows",
+    f"--add-data=loggers/loggers.json{separator}loggers",
+    f"--add-data=LICENSE{separator}.",
+    f"--add-data=README.md{separator}.",
+    # Add hidden imports
+    "--hidden-import=loggers",
     "--hidden-import=utils.downloader",
     "--hidden-import=utils.drivers",
     "--hidden-import=utils.file_utils",
     "--hidden-import=utils.unrar",
     "--hidden-import=utils.web_utils",
-    "--clean",  # Clean PyInstaller cache
-    "--noconfirm",  # Replace output directory without asking
+    # Other PyInstaller options
+    "--clean",
+    "--noconfirm",
 ]
 
 # Run PyInstaller
