@@ -18,6 +18,8 @@ def format_filename():
 
     print_txt_files()
     user_input = input("Enter file name from the above text files: ")
+    if user_input is None:
+        logger.warn("File name cannot be empty")
 
     if user_input == "":
         user_input = "download"

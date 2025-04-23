@@ -92,8 +92,8 @@ jobs:
       - name: Extract and run Linux binary
         run: |
           unzip test_artifacts/linux-x64-binary.zip -d test_artifacts
-          chmod +x test_artifacts/fitgirl_downloader
-          test_artifacts/fitgirl_downloader
+          chmod +x test_artifacts/dist/fitgirl_downloader
+          test_artifacts/dist/fitgirl_downloader
 
   release:
     needs: [build-windows, build-linux, test-windows, test-linux]
