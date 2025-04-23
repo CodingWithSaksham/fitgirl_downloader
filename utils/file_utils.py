@@ -23,7 +23,7 @@ def format_filename():
     except EOFError:
         # Pretend that script is in GitHub action
         logger.info("Binary in GitHub action")
-        exit()
+        sys.exit()
 
     if user_input == "":
         user_input = "download"
